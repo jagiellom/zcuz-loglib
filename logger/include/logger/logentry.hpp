@@ -21,7 +21,7 @@ enum class LogLevel {
 /**
  * @brief Representation of singular log entry.
  */
-struct LogMessage {
+struct LogEntry {
   /// Timestamp of log entry
   std::chrono::system_clock::time_point timestamp;
   /// Level of log entry

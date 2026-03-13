@@ -1,6 +1,8 @@
 #pragma once
 
-#include "logmessage.hpp"
+#include "logentry.hpp"
+#include <memory>
+#include <vector>
 
 namespace logger {
 
@@ -10,6 +12,6 @@ namespace logger {
 class LogSink {
 public:
   virtual ~LogSink() = default;
-  virtual void log(const LogMessage &msg) = 0;
+  virtual void log(const LogEntry &msg) = 0;
 };
 } // namespace logger
