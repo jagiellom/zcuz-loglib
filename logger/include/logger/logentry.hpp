@@ -1,22 +1,10 @@
 #pragma once
+#include "logger/loglevel.hpp"
 #include <chrono>
 #include <string>
 #include <thread>
 
 namespace logger {
-
-enum class LogLevel {
-  /// Detailed diagnostic information
-  TRACE,
-  /// Debugging information used mostly during development
-  DEBUG,
-  /// Informational messages during system operation
-  INFO,
-  /// Warning for possible problems
-  WARN,
-  /// Error information indicating failure
-  ERROR,
-};
 
 /**
  * @brief Representation of singular log entry.

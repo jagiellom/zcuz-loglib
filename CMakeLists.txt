@@ -34,6 +34,9 @@ add_library(logger
     logger/src/logger.cpp
     logger/src/filesink.cpp
     logger/src/networksink.cpp
+    logger/src/consolesink.cpp
+    logger/src/loglevel.cpp
+    logger/src/logsink.cpp
 )
 
 target_include_directories(logger

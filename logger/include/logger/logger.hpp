@@ -21,6 +21,15 @@ public:
   void registerSink(std::shared_ptr<LogSink> sink);
 
   /**
+   * @brief Set minimal severity level that will be logged
+   * All levels below set level will be skipped, useful for debug/release modes
+   * Defaults to INFO
+   *
+   * @param level Minimum level of severity to be logged
+   */
+  void setMinLevel(LogLevel level);
+
+  /**
    * @brief Log with TRACE serverity level
    *
    * @param module Source of log message - ie module
@@ -66,5 +75,6 @@ private:
    */
   void log(LogLevel level, const std::string &module, const std::string &msg);
   std::vector<std::shared_ptr<LogSink>> sinks;
+  LogLevel minLevel = LogLevel::INFO;
 };
 } // namespace logger
