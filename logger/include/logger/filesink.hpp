@@ -21,11 +21,11 @@ public:
   void log(const LogEntry &entry) override;
 
 private:
-  std::ofstream fstream;
-  std::mutex mut;
-  std::string file_path;
-  std::size_t max_file_size;
-  std::size_t current_size;
+  std::ofstream fstream_;
+  std::mutex mut_;
+  std::string file_path_;
+  std::size_t max_file_size_;
+  std::size_t current_size_;
 
   std::string getFileName();
   void rotateFile();

@@ -7,7 +7,7 @@ LogSink::getTimestamp(const std::chrono::system_clock::time_point &time_point) {
   auto tm_ptr = std::localtime(&time);
   auto tm = *tm_ptr;
   std::stringstream stream;
-  stream << std::put_time(&tm, "%H:%M:%S %Y-%m-%d");
+  stream << std::put_time(&tm, "%Y-%m-%d-%H:%M:%S");
 
   return stream.str();
 };

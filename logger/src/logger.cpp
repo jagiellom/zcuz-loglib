@@ -7,36 +7,46 @@
 
 namespace logger {
 
-void Logger::registerSink(std::shared_ptr<LogSink> sink) {
-  sinks.push_back(std::move(sink));
+Logger::Logger()
+    : worker_(std::thread(&Logger::dispatch_logs, this)), is_running_(true) {};
+
+Logger::~Logger() {
+  queue_.close();
+  if (worker_.joinable()) {
+    worker_.join();
+  }
 }
 
-void Logger::setMinLevel(LogLevel level) { minLevel = level; }
+void Logger::register_sink(std::shared_ptr<LogSink> sink) {
+  sinks_.push_back(std::move(sink));
+}
 
-void Logger::logTrace(const std::string &module, const std::string &message) {
+void Logger::set_min_level(LogLevel level) { min_level_ = level; }
+
+void Logger::trace(const std::string &module, const std::string &message) {
   log(LogLevel::TRACE, module, message);
 }
 
-void Logger::logDebug(const std::string &module, const std::string &message) {
+void Logger::debug(const std::string &module, const std::string &message) {
   log(LogLevel::DEBUG, module, message);
 }
 
-void Logger::logInfo(const std::string &module, const std::string &message) {
+void Logger::info(const std::string &module, const std::string &message) {
   log(LogLevel::INFO, module, message);
 }
 
-void Logger::logWarn(const std::string &module, const std::string &message) {
+void Logger::warn(const std::string &module, const std::string &message) {
   log(LogLevel::WARN, module, message);
 }
 
-void Logger::logError(const std::string &module, const std::string &message) {
+void Logger::error(const std::string &module, const std::string &message) {
   log(LogLevel::ERROR, module, message);
 }
 
 void Logger::log(LogLevel level, const std::string &module,
                  const std::string &msg) {
 
-  if (level < minLevel) {
+  if (level < min_level_) {
     return;
   }
 
@@ -48,8 +58,19 @@ void Logger::log(LogLevel level, const std::string &module,
   entry.msg = msg;
   entry.thread_id = std::this_thread::get_id();
 
-  for (auto &sink : sinks) {
+  for (auto &sink : sinks_) {
     sink->log(entry);
+  }
+}
+
+void Logger::dispatch_logs() {
+
+  LogEntry entry;
+
+  while (queue_.try_pop(entry)) {
+    for (auto &sink : sinks_) {
+      sink->log(entry);
+    }
   }
 }
 

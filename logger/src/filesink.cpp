@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <filesystem>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -45,7 +44,6 @@ void FileSink::rotateFile() {
 }
 
 void FileSink::log(const LogEntry &entry) {
-  std::cout << "current file size: " << current_size << std::endl;
   std::lock_guard<std::mutex> lock(mut);
 
   std::stringstream ss;
@@ -55,10 +53,6 @@ void FileSink::log(const LogEntry &entry) {
      << entry.msg << "\n";
 
   std::string line = ss.str();
-
-  std::cout << "LINE: " << line << std::endl;
-  std::cout << "SIZE: " << line.size() << std::endl;
-
   if (current_size + line.size() > max_file_size) {
     rotateFile();
   }
