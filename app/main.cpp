@@ -1,6 +1,8 @@
 #include "logger/consolesink.hpp"
 #include "logger/filesink.hpp"
 #include "logger/logger.hpp"
+#include "logger/networksink.hpp"
+#include <chrono>
 #include <memory>
 #include <thread>
 
@@ -9,22 +11,12 @@
 int main() {
   logger::Logger logger;
 
-  logger.register_sink(std::make_shared<logger::ConsoleSink>());
-  logger.register_sink(std::make_shared<logger::FileSink>("./logs/", 100 * KB));
-
-  std::vector<std::thread> threads;
-
-  for (int t = 0; t < 4; ++t) {
-    threads.emplace_back([&logger, t]() {
-      for (int i = 0; i < 500; ++i) {
-        logger.info("thread_" + std::to_string(t),
-                    "message " + std::to_string(i));
-      }
-    });
+  logger.register_sink(
+      std::make_shared<logger::NetworkSink>("localhost", 9000));
+  for (int i = 0; i < 20; ++i) {
+    logger.info("overflow", "msg " + std::to_string(i));
   }
 
-  for (auto &th : threads)
-    th.join();
-
+  std::this_thread::sleep_for(std::chrono::seconds(10));
   return 0;
 }

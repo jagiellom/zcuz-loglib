@@ -7,11 +7,13 @@ template <typename T> class ThreadSafeQueue {
 
 public:
   void push(T val) {
-    std::lock_guard<std::mutex> lock(mut_);
-    if (closed_)
-      throw std::string(
-          "Cannot push value to queue. ThreadSafeQueue is closed.");
-    queue_.push(std::move(val));
+    {
+      std::lock_guard<std::mutex> lock(mut_);
+      if (closed_)
+        throw std::string(
+            "Cannot push value to queue. ThreadSafeQueue is closed.");
+      queue_.push(std::move(val));
+    }
 
     condition_.notify_one();
   }

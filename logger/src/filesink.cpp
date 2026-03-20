@@ -9,15 +9,15 @@
 namespace logger {
 
 FileSink::FileSink(const std::string &path, const std::size_t max_size)
-    : file_path(path), max_file_size(max_size), current_size(0) {
+    : file_path_(path), max_file_size_(max_size), current_size_(0) {
 
   std::filesystem::create_directories(
       std::filesystem::path(path).parent_path());
 
   auto file_name = getFileName();
-  fstream.open(file_name, std::ios::app);
+  fstream_.open(file_name, std::ios::app);
 
-  if (!fstream.is_open())
+  if (!fstream_.is_open())
     throw std::runtime_error("Error while opening log file");
 }
 
@@ -26,25 +26,25 @@ std::string FileSink::getFileName() {
   std::stringstream ss;
 
   auto now = std::chrono::system_clock::now();
-  ss << file_path << "log" << "-" << getTimestamp(now) << ".log";
+  ss << file_path_ << "log" << "-" << getTimestamp(now) << ".log";
 
   return ss.str();
 }
 
 void FileSink::rotateFile() {
-  fstream.close();
+  fstream_.close();
 
   auto new_file_name = getFileName();
-  current_size = 0;
+  current_size_ = 0;
 
-  fstream.open(new_file_name, std::ios::app);
+  fstream_.open(new_file_name, std::ios::app);
 
-  if (!fstream.is_open())
+  if (!fstream_.is_open())
     throw std::runtime_error("Error while opening new log file");
 }
 
 void FileSink::log(const LogEntry &entry) {
-  std::lock_guard<std::mutex> lock(mut);
+  std::lock_guard<std::mutex> lock(mut_);
 
   std::stringstream ss;
 
@@ -53,12 +53,12 @@ void FileSink::log(const LogEntry &entry) {
      << entry.msg << "\n";
 
   std::string line = ss.str();
-  if (current_size + line.size() > max_file_size) {
+  if (current_size_ + line.size() > max_file_size_) {
     rotateFile();
   }
 
-  fstream << line;
-  current_size += line.size();
+  fstream_ << line;
+  current_size_ += line.size();
 }
 
 } // namespace logger
