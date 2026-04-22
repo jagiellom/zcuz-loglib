@@ -1,3 +1,5 @@
+#pragma once
+
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -8,9 +10,9 @@ namespace logger {
 /**
  * @brief Blocking thread-safe FIFO queue.
  *
- * ThreadSafeQueue allows producer threads to push values while a consumer waits
- * for values with try_pop(). Closing the queue wakes waiting consumers and
- * prevents further pushes.
+ * ThreadSafeQueue allows threads to push values while  consumer waits
+ * for values with try_pop(). Closing the queue wakes consumers and
+ * stops pushes.
  *
  * @tparam T Type stored in the queue.
  */
@@ -18,10 +20,10 @@ template <typename T> class ThreadSafeQueue {
 
 public:
   /**
-   * @brief Push a value into the queue.
+   * @brief Push value into the queue.
    *
-   * @param val Value to enqueue.
-   * @throws std::runtime_error When the queue has already been closed.
+   * @param val Value to push.
+   * @throws std::runtime_error When the queue has been closed.
    */
   void push(T val) {
     {
@@ -36,13 +38,12 @@ public:
   }
 
   /**
-   * @brief Wait for and pop the next value from the queue.
+   * @brief Wait and pop value from the queue.
    *
-   * This call blocks until either an item is available or the queue is closed.
+   * Blocks until queue is closed or populated
    *
-   * @param out Destination for the popped value.
-   * @return true when a value was popped, false when the queue is closed and
-   * empty.
+   * @param out Popped value.
+   * @return true when a value was popped, else false
    */
   bool try_pop(T &out) {
     std::unique_lock<std::mutex> lock(mut_);
@@ -59,7 +60,7 @@ public:
   }
 
   /**
-   * @brief Close the queue and wake all waiting consumers.
+   * @brief Close the queue and wake consumers.
    *
    * Already queued values can still be popped after close(). New calls to
    * push() will fail.
@@ -72,22 +73,22 @@ public:
 
 private:
   /**
-   * @brief Stored queue values.
+   * @brief Queue values.
    */
   std::queue<T> queue_;
 
   /**
-   * @brief Mutex protecting queue state.
+   * @brief Mutex for queue.
    */
   std::mutex mut_;
 
   /**
-   * @brief Condition variable used to wake waiting consumers.
+   * @brief Condition variable to wake consumers.
    */
   std::condition_variable condition_;
 
   /**
-   * @brief Whether the queue is closed for new values.
+   * @brief Stores whether queue is closed.
    */
   bool closed_ = false;
 };
