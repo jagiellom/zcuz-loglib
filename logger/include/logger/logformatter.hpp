@@ -36,5 +36,7 @@ protected:
    */
   std::string formatTimestamp(
       const std::chrono::system_clock::time_point &time_point) const;
+
+  std::string threadIdToString(const std::thread::id &thread_id) const;
 };
 } // namespace logger

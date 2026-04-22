@@ -4,21 +4,12 @@
 
 #include <sstream>
 #include <string>
-#include <thread>
 
 namespace logger {
-
-std::string threadIdToString(const std::thread::id &thread_id) {
-  std::stringstream stream;
-  stream << thread_id;
-
-  return stream.str();
-}
 
 std::string escapeCsvField(const std::string &field) {
   bool needs_quotes = false;
   std::string escaped;
-  escaped.reserve(field.size());
 
   for (char c : field) {
     if (c == '"') {

@@ -18,4 +18,12 @@ std::string LogFormatter::formatTimestamp(
   return stream.str();
 }
 
+std::string
+LogFormatter::threadIdToString(const std::thread::id &thread_id) const {
+  std::stringstream stream;
+  stream << thread_id;
+
+  return stream.str();
+}
+
 } // namespace logger

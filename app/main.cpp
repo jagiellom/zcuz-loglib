@@ -35,7 +35,7 @@ namespace testapp {
   log.register_sink(std::make_shared<logger::FileSink>(
       "logs/csv-", 4096, std::make_shared<logger::CsvFormatter>()));
 
-  log.info("module a", "csv example A 1");
+  log.info("module a", "csv \"example\" A 1");
   log.warn("Module A", "csv example A 2");
   log.error("Module B", "csv example B 1");
 }
@@ -91,12 +91,12 @@ namespace testapp {
 } // namespace testapp
 
 int main() {
-  testapp::runFileRotationExample();
+  // testapp::runFileRotationExample();
 
   // testapp::runConsoleExample();
   // testapp::runCsvExample();
   // testapp::runMultiSinkExample();
-  // testapp::runNetworkExample();
+  testapp::runNetworkExample();
 
   return 0;
 }

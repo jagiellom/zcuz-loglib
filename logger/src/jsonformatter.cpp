@@ -3,17 +3,8 @@
 #include "logger/loglevel.hpp"
 
 #include <nlohmann/json.hpp>
-#include <sstream>
-#include <thread>
 
 namespace logger {
-
-std::string threadIdToString(const std::thread::id &thread_id) {
-  std::stringstream stream;
-  stream << thread_id;
-
-  return stream.str();
-}
 
 std::string JsonFormatter::format(const LogEntry &entry) {
   nlohmann::json json;
