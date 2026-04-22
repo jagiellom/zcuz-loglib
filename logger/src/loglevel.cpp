@@ -6,13 +6,13 @@ LogLevel logLevelFromString(const std::string &str) {
   if (str == "trace")
     return LogLevel::TRACE;
   if (str == "debug")
-    return LogLevel::TRACE;
+    return LogLevel::DEBUG;
   if (str == "info")
-    return LogLevel::TRACE;
+    return LogLevel::INFO;
   if (str == "warn")
-    return LogLevel::TRACE;
+    return LogLevel::WARN;
   if (str == "error")
-    return LogLevel::TRACE;
+    return LogLevel::ERROR;
 
   return LogLevel::INFO;
 };

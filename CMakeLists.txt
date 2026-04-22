@@ -35,6 +35,11 @@ add_library(logger
     logger/src/filesink.cpp
     logger/src/networksink.cpp
     logger/src/consolesink.cpp
+    logger/src/simpletextformatter.cpp
+    logger/src/jsonformatter.cpp
+    logger/src/csvformatter.cpp
+    logger/src/patternformatter.cpp
+    logger/src/logformatter.cpp
     logger/src/loglevel.cpp
     logger/src/logsink.cpp
 )
@@ -63,3 +68,35 @@ target_link_libraries(test_app
   PRIVATE
     logger
 )
+
+set(LOGGER_EXAMPLES
+  main_console
+  main_csv
+  main_file_rotation
+  main_multi_sink
+  main_network
+)
+
+foreach(example IN LISTS LOGGER_EXAMPLES)
+  add_executable(${example}
+    app/examples/${example}.cpp
+  )
+
+  target_link_libraries(${example}
+    PRIVATE
+      logger
+  )
+endforeach()
+
+enable_testing()
+
+add_executable(logger_tests
+  tests/logger_tests.cpp
+)
+
+target_link_libraries(logger_tests
+  PRIVATE
+    logger
+)
+
+add_test(NAME logger_tests COMMAND logger_tests)

@@ -2,13 +2,14 @@
 
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace logger {
 
-Logger::Logger()
-    : worker_(std::thread(&Logger::dispatch_logs, this)), is_running_(true) {};
+Logger::Logger() : worker_(std::thread(&Logger::dispatch_logs, this)) {};
 
 Logger::~Logger() {
   queue_.close();
@@ -18,10 +19,11 @@ Logger::~Logger() {
 }
 
 void Logger::register_sink(std::shared_ptr<LogSink> sink) {
+  std::lock_guard<std::mutex> lock(sinks_mutex_);
   sinks_.push_back(std::move(sink));
 }
 
-void Logger::set_min_level(LogLevel level) { min_level_ = level; }
+void Logger::set_min_level(LogLevel level) { min_level_.store(level); }
 
 void Logger::trace(const std::string &module, const std::string &message) {
   log(LogLevel::TRACE, module, message);
@@ -46,7 +48,7 @@ void Logger::error(const std::string &module, const std::string &message) {
 void Logger::log(LogLevel level, const std::string &module,
                  const std::string &msg) {
 
-  if (level < min_level_) {
+  if (level < min_level_.load()) {
     return;
   }
 
@@ -58,9 +60,7 @@ void Logger::log(LogLevel level, const std::string &module,
   entry.msg = msg;
   entry.thread_id = std::this_thread::get_id();
 
-  for (auto &sink : sinks_) {
-    sink->log(entry);
-  }
+  queue_.push(std::move(entry));
 }
 
 void Logger::dispatch_logs() {
@@ -68,7 +68,13 @@ void Logger::dispatch_logs() {
   LogEntry entry;
 
   while (queue_.try_pop(entry)) {
-    for (auto &sink : sinks_) {
+    std::vector<std::shared_ptr<LogSink>> sinks;
+    {
+      std::lock_guard<std::mutex> lock(sinks_mutex_);
+      sinks = sinks_;
+    }
+
+    for (auto &sink : sinks) {
       sink->log(entry);
     }
   }

@@ -2,9 +2,12 @@
 
 #include "logger/logsink.hpp"
 #include <asio.hpp>
+#include <atomic>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
+#include <thread>
 
 namespace logger {
 
@@ -20,10 +23,26 @@ public:
    * @param port Port of tcp socket
    */
   NetworkSink(const std::string &host, int port);
+
+  /**
+   * @brief Create a NetworkSink using a custom formatter.
+   *
+   * @param host Hostname of tcp socket.
+   * @param port Port of tcp socket.
+   * @param formatter Formatter used to serialize log entries.
+   */
+  NetworkSink(const std::string &host, int port,
+              std::shared_ptr<LogFormatter> formatter);
+
+  /**
+   * @brief Stop retry handling and flush buffered entries.
+   */
   ~NetworkSink();
 
   /**
    * @brief Outputs log entry through tcp
+   *
+   * @param entry Log entry to send.
    */
   void log(const LogEntry &entry) override;
 
@@ -35,10 +54,17 @@ private:
   /**
    * @brief Sends serialized data through tcp socket. Single frame consists of
    * json line ending with \n.
+   *
+   * @param data Serialized frame to send.
+   * @return true when the frame was sent, false when sending failed.
    */
   bool send(const std::string &data);
+
   /**
    * @brief Serializes LogEntry to json.
+   *
+   * @param entry Log entry to serialize.
+   * @return JSON line terminated with a newline character.
    */
   std::string serialize(const LogEntry &entry);
 
@@ -75,7 +101,12 @@ private:
    * @brief Maximum backoff in ms.
    */
   const int max_backoff_ = 3000;
+
+  /**
+   * @brief Mutex protecting socket access and retry buffer state.
+   */
   std::mutex mut_;
+
   /**
    * @brief Hostname of tcp socket.
    */
@@ -84,7 +115,15 @@ private:
    * @brief Port of tcp socket.
    */
   int port_;
+
+  /**
+   * @brief ASIO context used by the TCP socket and resolver.
+   */
   asio::io_context io_context_;
+
+  /**
+   * @brief TCP socket used to send serialized log entries.
+   */
   asio::ip::tcp::socket socket_;
 };
 

@@ -2,8 +2,12 @@
 
 #include "logsink.hpp"
 #include "threadsafequeue.hpp"
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <vector>
 
 namespace logger {
 /**
@@ -14,7 +18,14 @@ namespace logger {
  */
 class Logger {
 public:
+  /**
+   * @brief Create a logger and start its background dispatch worker.
+   */
   Logger();
+
+  /**
+   * @brief Stop the dispatch worker after flushing queued log entries.
+   */
   ~Logger();
 
   // Can't copy threads
@@ -42,35 +53,35 @@ public:
   void set_min_level(LogLevel level);
 
   /**
-   * @brief Log with TRACE serverity level
+   * @brief Log with TRACE severity level
    *
    * @param module Source of log message - ie module
    * @param msg Text message
    */
   void trace(const std::string &module, const std::string &msg);
   /**
-   * @brief Log with DEBUG serverity level
+   * @brief Log with DEBUG severity level
    *
    * @param module Source of log message - ie module
    * @param msg Text message
    */
   void debug(const std::string &module, const std::string &msg);
   /**
-   * @brief Log with INFO serverity level
+   * @brief Log with INFO severity level
    *
    * @param module Source of log message - ie module
    * @param msg Text message
    */
   void info(const std::string &module, const std::string &msg);
   /**
-   * @brief Log with WARN serverity level
+   * @brief Log with WARN severity level
    *
    * @param module Source of log message - ie module
    * @param msg Text message
    */
   void warn(const std::string &module, const std::string &msg);
   /**
-   * @brief Log with ERROR serverity level
+   * @brief Log with ERROR severity level
    *
    * @param module Source of log message - ie module
    * @param msg Text message
@@ -101,16 +112,16 @@ private:
   std::vector<std::shared_ptr<LogSink>> sinks_;
 
   /**
+   * @brief Mutex protecting sink registration and sink list snapshots.
+   */
+  std::mutex sinks_mutex_;
+
+  /**
    * @brief Minimal level of logged entries.
    *
    * Logs with lower severity lever than set in minLevel will be discarded
    */
-  LogLevel min_level_ = LogLevel::INFO;
-
-  /**
-   * @brief Worker thread used to dispatch entries to sinks
-   */
-  std::thread worker_;
+  std::atomic<LogLevel> min_level_{LogLevel::INFO};
 
   /**
    * @brief Queue of log entries
@@ -118,8 +129,8 @@ private:
   ThreadSafeQueue<LogEntry> queue_;
 
   /**
-   * @brief Thread safe information whether logger thread is running
+   * @brief Worker thread used to dispatch entries to sinks
    */
-  std::atomic<bool> is_running_{false};
+  std::thread worker_;
 };
 } // namespace logger

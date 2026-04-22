@@ -1,14 +1,20 @@
 #include "logger/networksink.hpp"
-#include "logger/loglevel.hpp"
-#include <chrono>
+#include "logger/jsonformatter.hpp"
+
 #include <iostream>
+#include <memory>
 #include <mutex>
-#include <nlohmann/json.hpp>
+#include <utility>
 
 namespace logger {
 
 NetworkSink::NetworkSink(const std::string &host, int port)
-    : host_(host), port_(port), socket_(io_context_) {
+    : NetworkSink(host, port, std::make_shared<JsonFormatter>()) {}
+
+NetworkSink::NetworkSink(const std::string &host, int port,
+                         std::shared_ptr<LogFormatter> formatter)
+    : LogSink(std::move(formatter)), host_(host), port_(port),
+      socket_(io_context_) {
 
   try {
     connect();
@@ -48,15 +54,8 @@ bool NetworkSink::send(const std::string &data) {
 }
 
 std::string NetworkSink::serialize(const LogEntry &entry) {
-  nlohmann::json j;
-
-  j["level"] = logLevelToString(entry.level);
-  j["message"] = entry.msg;
-  j["module"] = entry.module;
-  j["timestmap"] = getTimestamp(std::chrono::system_clock::now());
-
   // using \n as end of frame
-  return j.dump() + "\n";
+  return format(entry) + "\n";
 }
 
 void NetworkSink::flushBuffer() {
@@ -102,8 +101,6 @@ void NetworkSink::log(const LogEntry &entry) {
   if (send(data))
     return;
 
-  // failed send() - realizing that networklogging is a bad idea here. Where do
-  // I log errors with logger now??
   socket_.close();
   try {
     connect();
